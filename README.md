@@ -1,5 +1,8 @@
+# Travel Planner AI Agent #
+This is an application developed on the Next Level Week 16 event.
+It is a AI Agent utilized to plan and create an itinerary for a trip.
 # configure openai apikey environment variable
-# using mac latests versions
+# using mac latest versions
 nano ~/.zshrc
 export OPENAI_API_KEY='your-api-key'
 
