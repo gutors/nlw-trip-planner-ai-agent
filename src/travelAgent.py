@@ -11,7 +11,9 @@ import bs4
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.prompts import PromptTemplate
 from langchain_core.runnables import RunnableSequence
+import json
 
+OPENAI_API_KEY= os.environ['OPENAI_API_KEY']
 
 llm = ChatOpenAI(
     model="gpt-3.5-turbo",
@@ -25,15 +27,15 @@ llm = ChatOpenAI(
     # other params...
 )
 
-query="""
-Vou viajar para Inglaterra em Agosto de 2024. Quero que faça um roteiro com os eventos que vao ocorrer na data da viagem e o preco das passagens de Sao Paulo para Londres.
-"""
+# query="""
+# Vou viajar para Inglaterra em Agosto de 2024. Quero que faça um roteiro com os eventos que vao ocorrer na data da viagem e o preco das passagens de Sao Paulo para Londres.
+# """
 
 def researchAgent(query: str, llm: ChatOpenAI):
     tools = load_tools(['ddg-search', 'wikipedia'], llm = llm)
     prompt = hub.pull("hwchase17/react")
     agent = create_react_agent(llm, tools, prompt)
-    agent_executor = AgentExecutor(agent=agent, tools=tools, prompt=prompt, verbose='true')
+    agent_executor = AgentExecutor(agent=agent, tools=tools, prompt=prompt)
     webContext = agent_executor.invoke({"input":query})
     return webContext['output']
 
@@ -52,7 +54,6 @@ def loadData():
 def getRelevantDocs(query: str):
     retriever = loadData()
     relevant_docs = retriever.invoke(query)
-    print(relevant_docs)
     return relevant_docs
 
 def supervisorAgent(query: str, llm: ChatOpenAI, webContext, relevantDocuments):
@@ -80,4 +81,20 @@ def getResponse(query: str, llm):
     response = supervisorAgent(query, llm, webContext, relevantDocuments)
     return response
 
-print (getResponse(query, llm))
+def lambda_handler(event, context):
+  # query = event.get("question")
+  body = json.loads(event.get('body', {}))
+  query = body.get('question', 'Parametro question não fornecido')
+  response = getResponse(query, llm).content
+  return {
+    "statusCode": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": json.dumps({
+      "message": "Tarefa concluída com sucesso",
+      "details": response
+    }), 
+  }
+
+# lambda_handler({ "question": "faca uma viagem para o brasil"}, {})

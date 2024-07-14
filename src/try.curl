@@ -1,0 +1,6 @@
+# example URL for testing the lambd function through API Gateway
+curl -X POST "http://api-travelplanneragent-1084645214.ap-southeast-1.elb.amazonaws.com" \
+-H "Content-Type: application/json" \
+-d '{
+    "question": "Vou viajar para Inglaterra em Agosto de 2024. Quero que faça um roteiro com os eventos que vao ocorrer na data da viagem e o preco das passagens de Sao Paulo para Londres."
+}'
